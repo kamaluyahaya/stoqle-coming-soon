@@ -70,6 +70,21 @@ async function sendWelcomeEmail(toEmail: string) {
   }
 }
 
+async function sendAdminNotification(newEmail: string) {
+  const transporter = getTransporter();
+  const mailOptions = {
+    from: `"Stoqle Waitlist" <${process.env.MAIL_FROM}>`,
+    to: process.env.MAIL_FROM_TO_ME, // Send to yourself
+    subject: `🎉 New Waitlist Sign-up: ${newEmail}`,
+    text: `You have a new waitlist sign-up!\n\nEmail: ${newEmail}\nTime: ${new Date().toISOString()}`,
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Failed to send admin notification:", error);
+  }
+}
+
 export async function POST(req: Request) {
   console.log("POST /api/waitlist received a request");
   try {
@@ -83,17 +98,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // Ensure the waitlist file exists
-    if (!fs.existsSync(WAITLIST_FILE)) {
-      fs.writeFileSync(WAITLIST_FILE, JSON.stringify([]));
+    // Try to save to local file system (might fail on Vercel/serverless due to read-only FS)
+    let isDuplicate = false;
+    try {
+      if (!fs.existsSync(WAITLIST_FILE)) {
+        fs.writeFileSync(WAITLIST_FILE, JSON.stringify([]));
+      }
+
+      const data = fs.readFileSync(WAITLIST_FILE, "utf8");
+      const waitlist = JSON.parse(data);
+
+      isDuplicate = waitlist.some((entry: any) => entry.email === email);
+
+      if (!isDuplicate) {
+        waitlist.push({
+          email,
+          timestamp: new Date().toISOString(),
+        });
+        fs.writeFileSync(WAITLIST_FILE, JSON.stringify(waitlist, null, 2));
+      }
+    } catch (fsError) {
+      console.warn("Could not write to filesystem (expected in serverless):", fsError);
+      // We continue execution so the user still gets the email and a success message
     }
-
-    // Read current waitlist
-    const data = fs.readFileSync(WAITLIST_FILE, "utf8");
-    const waitlist = JSON.parse(data);
-
-    // Check for duplicates
-    const isDuplicate = waitlist.some((entry: any) => entry.email === email);
 
     if (isDuplicate) {
       return NextResponse.json(
@@ -102,23 +129,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Add new entry
-    const newEntry = {
-      email,
-      timestamp: new Date().toISOString(),
-    };
-
-    waitlist.push(newEntry);
-    fs.writeFileSync(WAITLIST_FILE, JSON.stringify(waitlist, null, 2));
-
-    // Send Welcome Email
+    // Send Emails
     try {
       await sendWelcomeEmail(email);
       console.log(`Welcome email sent to: ${email}`);
+
+      // Send admin notification so you don't lose the data!
+      await sendAdminNotification(email);
     } catch (mailError) {
-      console.error("Failed to send welcome email:", mailError);
-      // We don't return an error to the user if only the email fails, 
-      // as they are already successfully on the list.
+      console.error("Failed to send emails:", mailError);
+      // In production, you might want to return an error if SMTP fails, 
+      // but if the user successfully signs up, a 500 might confuse them.
+      // Since FS might have failed too, we should throw if emails fail so they can try again.
+      throw new Error("Failed to process waitlist and emails.");
     }
 
     return NextResponse.json(
@@ -128,7 +151,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Waitlist API error:", error);
     return NextResponse.json(
-      { error: "Failed to join waitlist" },
+      { error: "Failed to join waitlist. Please try again." },
       { status: 500 }
     );
   }
