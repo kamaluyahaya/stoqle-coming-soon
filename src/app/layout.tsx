@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   keywords: ["Stoqle", "Social Commerce", "Marketplace", "Waitlist", "Future of Commerce"],
   authors: [{ name: "Stoqle Inc." }],
   icons: {
-    icon: "/logos.png",
+    icon: "/logo.png",
   },
 };
 
