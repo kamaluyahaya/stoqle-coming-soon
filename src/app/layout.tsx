@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stoqle | Your lifestyle redefined",
+  title: "stoqle | Your lifestyle redefined",
   description: "Join the waitlist for Stoqle, a revolutionary ecosystem where community meets commerce seamlessly. Early access coming soon.",
   keywords: ["Stoqle", "Social Commerce", "Marketplace", "Waitlist", "Future of Commerce"],
   authors: [{ name: "Stoqle Inc." }],
