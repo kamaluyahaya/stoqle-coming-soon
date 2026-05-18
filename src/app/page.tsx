@@ -81,7 +81,7 @@ export default function ComingSoon() {
             transition={{ delay: 0.5 }}
             className="mt-4 text-[10px] uppercase tracking-[0.3em] text-zinc-400 font-bold"
           >
-            Initializing Future
+            Your lifestyle redefined
           </motion.p>
         </motion.div>
       ) : (
@@ -90,7 +90,7 @@ export default function ComingSoon() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
-          className="relative min-h-screen flex flex-col items-center justify-center bg-white text-zinc-900 overflow-hidden selection:bg-rose-500/20 font-sans"
+          className="relative min-h-[100dvh] flex flex-col items-center justify-center bg-white text-zinc-900 overflow-x-hidden selection:bg-rose-500/20 font-sans"
         >
           {/* Background Accents */}
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-rose-500/[0.03] rounded-full blur-[120px] pointer-events-none" />
