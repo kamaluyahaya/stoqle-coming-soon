@@ -81,7 +81,7 @@ export default function ComingSoon() {
             transition={{ delay: 0.5 }}
             className="mt-4 text-[10px] uppercase tracking-[0.3em] text-zinc-400 font-bold"
           >
-            Your lifestyle redefined
+            Your everyday guide
           </motion.p>
         </motion.div>
       ) : (
